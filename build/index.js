@@ -2,4 +2,3 @@
 var _server = require('./server');var _server2 = _interopRequireDefault(_server);function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };}exports.default =
 
 { Client: _client2.default, Server: _server2.default };
-//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIi4uL3NyYy9pbmRleC5qcyJdLCJuYW1lcyI6WyJDbGllbnQiLCJTZXJ2ZXIiXSwibWFwcGluZ3MiOiIyRUFBQSxrQztBQUNBLGtDOztBQUVlLEVBQUVBLHdCQUFGLEVBQVVDLHdCQUFWLEUiLCJmaWxlIjoiaW5kZXguanMiLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgQ2xpZW50IGZyb20gJy4vY2xpZW50JztcbmltcG9ydCBTZXJ2ZXIgZnJvbSAnLi9zZXJ2ZXInO1xuXG5leHBvcnQgZGVmYXVsdCB7IENsaWVudCwgU2VydmVyIH07XG4iXX0=
