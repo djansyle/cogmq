@@ -72,8 +72,8 @@ class RmqClient {
         _this2.messages.set(correlationId, function (reply) {
           clearTimeout(timeout);
           if (reply.error) {
-            const { message } = reply.error;
-            reject(Object.assign(new Error(message), { error: reply.error }));
+            const { code } = reply.error;
+            reject(Object.assign(new Error(code), reply.error));
             return;
           }
 

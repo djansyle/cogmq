@@ -38,8 +38,8 @@ export default class RmqServer {
       try {
         const { payload } = JSON.parse(msg.content.toString());
         result = { payload: await fn(payload) };
-      } catch (e) {
-        result = { error: { message: e.message, error: e } };
+      } catch (error) {
+        result = { error };
       }
 
       const { correlationId } = msg.properties;

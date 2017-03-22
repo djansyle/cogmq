@@ -19,7 +19,7 @@ export default class RmqClient {
     const queue = typeof option.queue;
     assert(queue === 'string', `Expecting 'queue' as a string but got ${queue}.`);
 
-    this.option = Object.assign({}, { timeout: 5000 }, option );
+    this.option = Object.assign({}, { timeout: 5000 }, option);
     this.messages = new Map();
     this.connection = null;
     this.channel = null;
@@ -72,8 +72,8 @@ export default class RmqClient {
       this.messages.set(correlationId, (reply) => {
         clearTimeout(timeout);
         if (reply.error) {
-          const { message } = reply.error;
-          reject(Object.assign(new Error(message), { error: reply.error }));
+          const { code } = reply.error;
+          reject(Object.assign(new Error(code), reply.error));
           return;
         }
 
