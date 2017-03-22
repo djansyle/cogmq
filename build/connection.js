@@ -41,4 +41,8 @@ class RmqConnection {
      */
   on(event, fn) {
     this.connection.on(event, fn);
+  }
+
+  close() {
+    this.connection.close();
   }}exports.default = RmqConnection;

@@ -7,7 +7,7 @@ async function delay(ms) {
   });
 }
 
-test('Should run and give result', async (t) => {
+test('Should run, respond, and close', async (t) => {
   const option = { queue: 'test' };
   const message = 'Hello MQ';
 
@@ -17,6 +17,10 @@ test('Should run and give result', async (t) => {
   const echoClient = new rmq.Client(option);
   const result = await echoClient.send(message);
   t.is(result, message, `Expecting response to equal to ${message}.`);
+
+  echoClient.stop();
+  await delay(500);
+  echoServer.stop();
 });
 
 test('Should give an error', async (t) => {
@@ -25,16 +29,11 @@ test('Should give an error', async (t) => {
 
   const echoServer = new rmq.Server(option);
   await echoServer.addWorker(() => {
-    throw Object.assign(new Error('Failing'), { code: 1 });
+    throw Object.assign({ code: 1, message: 'Failing' });
   });
 
   const echoClient = new rmq.Client(option);
-  let error = null;
-  try {
-    await echoClient.send(message);
-  } catch (e) {
-    error = e;
-  }
+  const error = await t.throws(echoClient.send(message));
   t.is(error.message, 'Failing', 'Expecting to throw an error.');
 });
 

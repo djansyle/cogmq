@@ -48,7 +48,7 @@ export default class RmqServer {
     });
 
     connection.on('close', () => channel.cancel(consumerTag));
-    this.connections.push(connection);
+    this.connections.push({ connection, channel });
     return consumerTag;
   }
 
@@ -56,7 +56,10 @@ export default class RmqServer {
    * Closes all the connection that has been made.
    */
   async stop() {
-    await this.connections.map(conn => conn.close());
+    await Promise.all(this.connections.map(async (conn) => {
+      await conn.channel.close();
+      conn.connection.close();
+    }));
     delete this.connections;
   }
 }

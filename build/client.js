@@ -89,4 +89,10 @@ class RmqClient {
 
 
       return promise;})();
+  }
+
+  stop() {var _this3 = this;return _asyncToGenerator(function* () {
+      yield _this3.channel.close();
+      _this3.connection.close();
+      delete _this3.connection;})();
   }}exports.default = RmqClient;

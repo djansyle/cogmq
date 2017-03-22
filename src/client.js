@@ -90,4 +90,10 @@ export default class RmqClient {
 
     return promise;
   }
+
+  async stop() {
+    await this.channel.close();
+    this.connection.close();
+    delete this.connection;
+  }
 }

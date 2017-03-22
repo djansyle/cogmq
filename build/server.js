@@ -48,7 +48,7 @@ class RmqServer {
         });return function (_x) {return _ref.apply(this, arguments);};})());
 
       connection.on('close', function () {return channel.cancel(consumerTag);});
-      _this.connections.push(connection);
+      _this.connections.push({ connection, channel });
       return consumerTag;})();
   }
 
@@ -56,6 +56,9 @@ class RmqServer {
      * Closes all the connection that has been made.
      */
   stop() {var _this2 = this;return _asyncToGenerator(function* () {
-      yield _this2.connections.map(function (conn) {return conn.close();});
+      yield Promise.all(_this2.connections.map((() => {var _ref2 = _asyncToGenerator(function* (conn) {
+          yield conn.channel.close();
+          conn.connection.close();
+        });return function (_x2) {return _ref2.apply(this, arguments);};})()));
       delete _this2.connections;})();
   }}exports.default = RmqServer;
