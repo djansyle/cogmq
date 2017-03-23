@@ -1,4 +1,6 @@
 import test from 'ava';
+import times from 'lodash.times';
+import Promise from 'bluebird';
 import rmq from '../src';
 
 async function delay(ms) {
@@ -18,9 +20,8 @@ test('Should run, respond, and close', async (t) => {
   const result = await echoClient.send(message);
   t.is(result, message, `Expecting response to equal to ${message}.`);
 
-  echoClient.stop();
-  await delay(500);
-  echoServer.stop();
+  await echoClient.stop();
+  await echoServer.stop();
 });
 
 test('Should give an error', async (t) => {
@@ -79,4 +80,23 @@ test('Should timeout', async (t) => {
 
   const error = await t.throws(client.send(''), Error);
   t.is(error.message, 'Waiting time reach to the maximum threshold.');
+});
+
+test('Stress', async (t) => {
+  const option = { queue: 'stress' };
+
+  const echoServer = new rmq.Server(option);
+  await echoServer.addWorker(m => m);
+
+  const numRequest = 1000;
+  const echoClient = new rmq.Client(option);
+  let received = 0;
+
+  await Promise.all(times(numRequest).map(async (i) => {
+    await echoClient.send(i);
+    received += 1;
+  }));
+
+
+  t.is(received, numRequest);
 });

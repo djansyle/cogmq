@@ -5,7 +5,7 @@ var _connection = require('./connection');var _connection2 = _interopRequireDefa
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  * RabbitMQ Consumer Class
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  */
 class RmqServer {
-  constructor(option = { durable: false }) {
+  constructor(option = { concurrency: false }) {
     const channelType = typeof option.queue;
     (0, _assert2.default)(channelType === 'string', `Expecting 'channel' as a string but got ${channelType}.`);
 
@@ -28,8 +28,8 @@ class RmqServer {
       const channel = yield connection.getChannel();
 
       yield channel.assertQueue(_this.option.queue, { durable: false });
-      yield channel.prefetch(1);
-      const { consumerTag } = channel.consume(_this.option.channel, (() => {var _ref = _asyncToGenerator(function* (msg) {
+      yield channel.prefetch(_this.option.concurrency);
+      const { consumerTag } = yield channel.consume(_this.option.channel, (() => {var _ref = _asyncToGenerator(function* (msg) {
           if (msg === null) {
             return;
           }
@@ -47,8 +47,7 @@ class RmqServer {
           channel.ack(msg);
         });return function (_x) {return _ref.apply(this, arguments);};})());
 
-      connection.on('close', function () {return channel.cancel(consumerTag);});
-      _this.connections.push({ connection, channel });
+      _this.connections.push({ channel, consumerTag });
       return consumerTag;})();
   }
 
@@ -56,9 +55,14 @@ class RmqServer {
      * Closes all the connection that has been made.
      */
   stop() {var _this2 = this;return _asyncToGenerator(function* () {
-      yield Promise.all(_this2.connections.map((() => {var _ref2 = _asyncToGenerator(function* (conn) {
-          yield conn.channel.close();
-          conn.connection.close();
+      yield Promise.all(_this2.connections.map((() => {var _ref2 = _asyncToGenerator(function* ({ channel, consumerTag }) {
+          // We just let know that the channel is already closed, considering the connection is also closed.
+          channel.cancel(consumerTag);
+
+          // Will cause on error see: https://github.com/squaremo/amqp.node/issues/250
+          // Instead we delete the channel and connection right away.
+          // await channel.close();
+          // connection.close();
         });return function (_x2) {return _ref2.apply(this, arguments);};})()));
       delete _this2.connections;})();
   }}exports.default = RmqServer;

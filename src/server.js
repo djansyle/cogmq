@@ -5,7 +5,7 @@ import RmqConnection from './connection';
  * RabbitMQ Consumer Class
  */
 export default class RmqServer {
-  constructor(option = { durable: false }) {
+  constructor(option = { concurrency: false }) {
     const channelType = typeof option.queue;
     assert(channelType === 'string', `Expecting 'channel' as a string but got ${channelType}.`);
 
@@ -28,8 +28,8 @@ export default class RmqServer {
     const channel = await connection.getChannel();
 
     await channel.assertQueue(this.option.queue, { durable: false });
-    await channel.prefetch(1);
-    const { consumerTag } = channel.consume(this.option.channel, async (msg) => {
+    await channel.prefetch(this.option.concurrency);
+    const { consumerTag } = await channel.consume(this.option.channel, async (msg) => {
       if (msg === null) {
         return;
       }
@@ -47,8 +47,7 @@ export default class RmqServer {
       channel.ack(msg);
     });
 
-    connection.on('close', () => channel.cancel(consumerTag));
-    this.connections.push({ connection, channel });
+    this.connections.push({ channel, consumerTag });
     return consumerTag;
   }
 
@@ -56,9 +55,14 @@ export default class RmqServer {
    * Closes all the connection that has been made.
    */
   async stop() {
-    await Promise.all(this.connections.map(async (conn) => {
-      await conn.channel.close();
-      conn.connection.close();
+    await Promise.all(this.connections.map(async ({ channel, consumerTag }) => {
+      // We just let know that the channel is already closed, considering the connection is also closed.
+      channel.cancel(consumerTag);
+
+      // Will cause on error see: https://github.com/squaremo/amqp.node/issues/250
+      // Instead we delete the channel and connection right away.
+      // await channel.close();
+      // connection.close();
     }));
     delete this.connections;
   }
