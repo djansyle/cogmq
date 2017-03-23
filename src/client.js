@@ -36,6 +36,7 @@ export default class RmqClient {
 
     const q = await channel.assertQueue('', { exclusive: true });
     channel.consume(q.queue, async (msg) => {
+      channel.ack(msg);
       const { correlationId } = msg.properties;
       const cb = this.messages.get(correlationId);
       if (!cb) {
@@ -44,7 +45,7 @@ export default class RmqClient {
       }
 
       cb(JSON.parse(msg.content.toString()));
-    }, { noAck: true });
+    });
 
     this.channel = channel;
     this.queue = q;

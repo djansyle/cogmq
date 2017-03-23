@@ -89,11 +89,12 @@ test('Stress', async (t) => {
   await echoServer.addWorker(m => m);
 
   const numRequest = 1000;
-  const echoClient = new rmq.Client(option);
+  const numClients = 100;
+  const clients = times(numClients).map(() => new rmq.Client(option));
   let received = 0;
 
   await Promise.all(times(numRequest).map(async (i) => {
-    await echoClient.send(i);
+    await clients[i % numClients].send(i);
     received += 1;
   }));
 

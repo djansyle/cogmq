@@ -36,6 +36,7 @@ class RmqClient {
 
       const q = yield channel.assertQueue('', { exclusive: true });
       channel.consume(q.queue, (() => {var _ref = _asyncToGenerator(function* (msg) {
+          channel.ack(msg);
           const { correlationId } = msg.properties;
           const cb = _this.messages.get(correlationId);
           if (!cb) {
@@ -44,7 +45,7 @@ class RmqClient {
           }
 
           cb(JSON.parse(msg.content.toString()));
-        });return function (_x) {return _ref.apply(this, arguments);};})(), { noAck: true });
+        });return function (_x) {return _ref.apply(this, arguments);};})());
 
       _this.channel = channel;
       _this.queue = q;})();

@@ -29,7 +29,7 @@ class RmqServer {
 
       yield channel.assertQueue(_this.option.queue, { durable: false });
       yield channel.prefetch(_this.option.concurrency);
-      const { consumerTag } = yield channel.consume(_this.option.channel, (() => {var _ref = _asyncToGenerator(function* (msg) {
+      const { consumerTag } = yield channel.consume(_this.option.queue, (() => {var _ref = _asyncToGenerator(function* (msg) {
           if (msg === null) {
             return;
           }

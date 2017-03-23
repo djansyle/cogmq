@@ -29,7 +29,7 @@ export default class RmqServer {
 
     await channel.assertQueue(this.option.queue, { durable: false });
     await channel.prefetch(this.option.concurrency);
-    const { consumerTag } = await channel.consume(this.option.channel, async (msg) => {
+    const { consumerTag } = await channel.consume(this.option.queue, async (msg) => {
       if (msg === null) {
         return;
       }
