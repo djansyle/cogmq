@@ -39,7 +39,11 @@ class RmqServer {
             const { payload } = JSON.parse(msg.content.toString());
             result = { payload: yield fn(payload) };
           } catch (error) {
-            result = { error };
+            if (error instanceof SyntaxError) {
+              result = { error: { code: 'PARSE_ERROR', args: { stack: error.stack } } };
+            } else {
+              result = { error };
+            }
           }
 
           const { correlationId } = msg.properties;

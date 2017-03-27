@@ -101,3 +101,28 @@ test('Stress', async (t) => {
 
   t.is(received, numRequest);
 });
+
+test('Should use the error', async (t) => {
+  const option = { queue: 'custom_error' };
+  const message = 'Hello MQ';
+
+  const echoServer = new rmq.Server(option);
+  await echoServer.addWorker(() => {
+    throw Object.assign({ code: 'FAIL_ERROR', args: { arg1: 'somearg', arg2: 'somearg2' } });
+  });
+
+  class CustomHandler extends Error {
+    constructor({ arg1, arg2 }) {
+      super();
+      this.arg1 = arg1;
+      this.arg2 = arg2;
+    }
+  }
+
+  const echoClient = new rmq.Client(option);
+  echoClient.setErrorMap({ FAIL_ERROR: CustomHandler });
+
+  const error = await t.throws(echoClient.send(message));
+  t.is(error.arg1, 'somearg');
+  t.is(error.arg2, 'somearg2');
+});

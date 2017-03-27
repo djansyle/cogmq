@@ -2,6 +2,7 @@ import assert from 'assert';
 import { v4 } from 'uuid';
 import debug from 'debug';
 import RmqConnection from './connection';
+import ConvertableError from './convertableError';
 
 /**
  * Generates an uuidV4 with no hyphen(-);
@@ -14,8 +15,9 @@ function uuidV4() {
 /**
  * RabbitMQ Client Class
  */
-export default class RmqClient {
+export default class RmqClient extends ConvertableError {
   constructor(option) {
+    super(option.errorMap);
     const queue = typeof option.queue;
     assert(queue === 'string', `Expecting 'queue' as a string but got ${queue}.`);
 
@@ -70,16 +72,21 @@ export default class RmqClient {
         reject(Object.assign(error, { correlationId, code: 'E_TIMEOUT', payload: msg }));
       }, this.option.timeout);
 
-      this.messages.set(correlationId, (reply) => {
+      this.messages.set(correlationId, ({ error, payload }) => {
         clearTimeout(timeout);
-        if (reply.error) {
-          const { code } = reply.error;
-          reject(Object.assign(new Error(code), reply.error));
+        this.messages.delete(correlationId);
+
+        if (error) {
+          const { code } = error;
+          if (!this.hasError(code)) {
+            reject(Object.assign(new Error(code), error));
+            return;
+          }
+          reject(this.error.call(this, code, error.args));
           return;
         }
 
-        this.messages.delete(correlationId);
-        resolve(reply.payload);
+        resolve(payload);
       });
     });
 

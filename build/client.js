@@ -1,12 +1,13 @@
 'use strict';Object.defineProperty(exports, "__esModule", { value: true });var _assert = require('assert');var _assert2 = _interopRequireDefault(_assert);
 var _uuid = require('uuid');
 var _debug = require('debug');var _debug2 = _interopRequireDefault(_debug);
-var _connection = require('./connection');var _connection2 = _interopRequireDefault(_connection);function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };}function _asyncToGenerator(fn) {return function () {var gen = fn.apply(this, arguments);return new Promise(function (resolve, reject) {function step(key, arg) {try {var info = gen[key](arg);var value = info.value;} catch (error) {reject(error);return;}if (info.done) {resolve(value);} else {return Promise.resolve(value).then(function (value) {step("next", value);}, function (err) {step("throw", err);});}}return step("next");});};}
+var _connection = require('./connection');var _connection2 = _interopRequireDefault(_connection);
+var _convertableError = require('./convertableError');var _convertableError2 = _interopRequireDefault(_convertableError);function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };}function _asyncToGenerator(fn) {return function () {var gen = fn.apply(this, arguments);return new Promise(function (resolve, reject) {function step(key, arg) {try {var info = gen[key](arg);var value = info.value;} catch (error) {reject(error);return;}if (info.done) {resolve(value);} else {return Promise.resolve(value).then(function (value) {step("next", value);}, function (err) {step("throw", err);});}}return step("next");});};}
 
 /**
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 * Generates an uuidV4 with no hyphen(-);
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 * @returns {string|XML|void|*}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 */
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         * Generates an uuidV4 with no hyphen(-);
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         * @returns {string|XML|void|*}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         */
 function uuidV4() {
   return (0, _uuid.v4)().replace(/-/g, '');
 }
@@ -14,8 +15,9 @@ function uuidV4() {
 /**
    * RabbitMQ Client Class
    */
-class RmqClient {
+class RmqClient extends _convertableError2.default {
   constructor(option) {
+    super(option.errorMap);
     const queue = typeof option.queue;
     (0, _assert2.default)(queue === 'string', `Expecting 'queue' as a string but got ${queue}.`);
 
@@ -70,16 +72,21 @@ class RmqClient {
           reject(Object.assign(error, { correlationId, code: 'E_TIMEOUT', payload: msg }));
         }, _this2.option.timeout);
 
-        _this2.messages.set(correlationId, function (reply) {
+        _this2.messages.set(correlationId, function ({ error, payload }) {
           clearTimeout(timeout);
-          if (reply.error) {
-            const { code } = reply.error;
-            reject(Object.assign(new Error(code), reply.error));
+          _this2.messages.delete(correlationId);
+
+          if (error) {
+            const { code } = error;
+            if (!_this2.hasError(code)) {
+              reject(Object.assign(new Error(code), error));
+              return;
+            }
+            reject(_this2.error.call(_this2, code, error.args));
             return;
           }
 
-          _this2.messages.delete(correlationId);
-          resolve(reply.payload);
+          resolve(payload);
         });
       });
 
