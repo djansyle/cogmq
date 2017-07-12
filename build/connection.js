@@ -2,7 +2,7 @@
 /**
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               * RabbitMQ Connection Class
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               */
-class RmqConnection {
+class CogConnection {
   /**
                       * @param {Object} option
                       * @param {String} [option.url]
@@ -45,4 +45,4 @@ class RmqConnection {
 
   close() {
     this.connection.close();
-  }}exports.default = RmqConnection;
+  }}exports.default = CogConnection;

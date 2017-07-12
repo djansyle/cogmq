@@ -1,6 +1,6 @@
 {
   "name": "cogmq",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "",
   "main": "build/index.js",
   "scripts": {
@@ -12,6 +12,7 @@
   "author": "djansyle",
   "license": "MIT",
   "repository": "git@github.com:djansyle/cogmq.git",
+  "keywords": ["rabbitmq", "queue"],
   "devDependencies": {
     "ava": "^0.18.2",
     "babel": "^6.23.0",

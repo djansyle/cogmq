@@ -4,7 +4,7 @@ var _connection = require('./connection');var _connection2 = _interopRequireDefa
 /**
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  * RabbitMQ Consumer Class
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  */
-class RmqServer {
+class CogServer {
   constructor(option = { concurrency: false }) {
     const channelType = typeof option.queue;
     (0, _assert2.default)(channelType === 'string', `Expecting 'channel' as a string but got ${channelType}.`);
@@ -69,4 +69,4 @@ class RmqServer {
           // connection.close();
         });return function (_x2) {return _ref2.apply(this, arguments);};})()));
       delete _this2.connections;})();
-  }}exports.default = RmqServer;
+  }}exports.default = CogServer;

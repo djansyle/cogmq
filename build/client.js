@@ -15,7 +15,7 @@ function uuidV4() {
 /**
    * RabbitMQ Client Class
    */
-class RmqClient extends _convertableError2.default {
+class CogClient extends _convertableError2.default {
   constructor(option) {
     super(option.errorMap);
     const queue = typeof option.queue;
@@ -103,4 +103,4 @@ class RmqClient extends _convertableError2.default {
       yield _this3.channel.close();
       _this3.connection.close();
       delete _this3.connection;})();
-  }}exports.default = RmqClient;
+  }}exports.default = CogClient;
