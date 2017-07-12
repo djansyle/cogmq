@@ -5,6 +5,8 @@ jobs:
     docker:
       - image: circleci/node:6.11
       - image: mysql:5.7.18
+        environment:
+          MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
     steps:
       - checkout
       - restore_cache:
