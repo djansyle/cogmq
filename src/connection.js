@@ -2,7 +2,7 @@ import amqplib from 'amqplib';
 /**
  * RabbitMQ Connection Class
  */
-export default class RmqConnection {
+export default class CogConnection {
   /**
    * @param {Object} option
    * @param {String} [option.url]

@@ -15,7 +15,7 @@ function uuidV4() {
 /**
  * RabbitMQ Client Class
  */
-export default class RmqClient extends ConvertableError {
+export default class CogClient extends ConvertableError {
   constructor(option) {
     super(option.errorMap);
     const queue = typeof option.queue;

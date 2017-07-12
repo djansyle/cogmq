@@ -1,0 +1,26 @@
+version: '2'
+jobs:
+  build:
+    working_directory: ~/cogmq
+    docker:
+      - image: circleci/node:6.11
+      - image: mysql:5.7.18
+    steps:
+      - checkout
+      - restore_cache:
+          key: dependency-cache-{{ checksum "package.json" }}
+          paths:
+            - ./node_modules
+      - run: yarn install
+      - run: yarn test
+      - run:
+          name: code-coverage
+          command: './node_modules/.bin/nyc report --reporter=text-lcov'
+      - store_artifacts:
+          path: test-results.xml
+          prefix: tests
+      - store_artifacts:
+          path: coverage
+          prefix: coverage
+      - store_test_results:
+          path: test-results.xml

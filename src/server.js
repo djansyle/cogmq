@@ -4,7 +4,7 @@ import RmqConnection from './connection';
 /**
  * RabbitMQ Consumer Class
  */
-export default class RmqServer {
+export default class CogServer {
   constructor(option = { concurrency: false }) {
     const channelType = typeof option.queue;
     assert(channelType === 'string', `Expecting 'channel' as a string but got ${channelType}.`);
