@@ -41,7 +41,7 @@
       "test/*.js",
       "!test/helpers.js"
     ],
-    "timeout": "10s",
+    "timeout": "50s",
     "concurrency": 5,
     "failFast": true,
     "powerAssert": false,
