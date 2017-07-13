@@ -1,6 +1,7 @@
 src/
 test/
-circle.yml
+.circleci
+.idea
 .babelrc
 .eslintrc
 yarn.lock

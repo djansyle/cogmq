@@ -17,7 +17,9 @@ export default class CogConnection {
    * @returns {Promise.<*>}
    */
   async initializeConnection() {
-    this.connection = await amqplib.connect(this.option);
+    const option = this.option;
+    const url = `amqp://${option.login}:${option.password}@${option.host}:${option.port}/${option.vhost}`;
+    this.connection = await amqplib.connect(url);
     return this;
   }
 
