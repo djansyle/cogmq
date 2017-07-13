@@ -7,13 +7,8 @@ export default class CogConnection {
    * @param {Object} option
    * @param {String} [option.url]
    */
-  constructor(option = { url: 'aqmp://localhost' }) {
+  constructor(option = 'aqmp://localhost') {
     this.option = option;
-
-    if (typeof option === 'string') {
-      this.option = { url: option };
-    }
-
     this.connection = null;
   }
 
@@ -22,7 +17,7 @@ export default class CogConnection {
    * @returns {Promise.<*>}
    */
   async initializeConnection() {
-    this.connection = await amqplib.connect(this.option.url);
+    this.connection = await amqplib.connect(this.option);
     return this;
   }
 
