@@ -1,6 +1,7 @@
 
-export default class ConvertableError {
+export default class ConvertableError extends Error {
   constructor(errorMap = {}) {
+    super();
     this.setErrorMap(errorMap);
   }
 

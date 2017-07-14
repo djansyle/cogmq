@@ -7,8 +7,14 @@ export default class CogConnection {
    * @param {Object} option
    * @param {String} [option.url]
    */
-  constructor(option = 'aqmp://localhost') {
-    this.option = option;
+  constructor(option) {
+    this.option = Object.assign(option || {}, {
+      host: 'localhost',
+      port: 5672,
+      login: 'guest',
+      password: 'guest',
+      vhost: '/',
+    });
     this.connection = null;
   }
 
@@ -18,7 +24,9 @@ export default class CogConnection {
    */
   async initializeConnection() {
     const option = this.option;
-    const url = `amqp://${option.login}:${option.password}@${option.host}:${option.port}/${option.vhost}`;
+    const auth = option.login || (typeof option === 'string' && option.login !== '') ?
+      `${option.login}:${option.password}@` : '';
+    const url = `amqp://${auth}${option.host}:${option.port}/${option.vhost}`;
     this.connection = await amqplib.connect(url);
     return this;
   }

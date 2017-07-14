@@ -1,5 +1,15 @@
 import assert from 'assert';
 import RmqConnection from './connection';
+import { server as logger } from './logger';
+
+function isJavascriptError(error) {
+  return error instanceof RangeError ||
+    error instanceof SyntaxError ||
+    error instanceof TypeError ||
+    error instanceof URIError ||
+    error instanceof EvalError ||
+    (error instanceof Error && error.name === 'Error'); // Plain Error object, not the one that is being inherited.
+}
 
 /**
  * RabbitMQ Consumer Class
@@ -11,6 +21,12 @@ export default class CogServer {
 
     this.option = option;
     this.connections = [];
+    this.errorHandler = null;
+  }
+
+  setErrorHandler(fn) {
+    assert(typeof fn === 'function', 'Expecting error handler to be a function');
+    this.errorHandler = fn;
   }
 
   get queue() {
@@ -22,6 +38,7 @@ export default class CogServer {
    * @param fn
    */
   async addWorker(fn) {
+    logger.info({ queue: this.option.queue, message: 'Attaching worker.' });
     const fnType = typeof fn;
     assert(fnType === 'function', `Expecting 'fn' to be a function but got ${fnType}.`);
     const connection = await (new RmqConnection(this.option).initializeConnection());
@@ -34,20 +51,38 @@ export default class CogServer {
         return;
       }
 
+      const content = msg.content.toString();
+      logger.inbound({ queue: this.option.queue, content });
       let result = null;
       try {
-        const { payload } = JSON.parse(msg.content.toString());
+        const { payload } = JSON.parse(content);
         result = { payload: await fn(payload) };
       } catch (error) {
+        logger.error({ queue: this.option.queue, error });
         if (error instanceof SyntaxError) {
-          result = { error: { code: 'PARSE_ERROR', args: { stack: error.stack } } };
+          result = {
+            error: {
+              code: 'PARSE_ERROR',
+              description: 'Invalid JSON format.',
+              meta: {
+                message: content,
+              },
+            },
+          };
+        } else if (isJavascriptError(error)) {
+          result = { error: { code: 'INTERNAL_ERROR', description: 'Something went wrong with the server.' } };
         } else {
           result = { error };
+
+          if (this.errorHandler) {
+            result = this.errorHandler(error);
+          }
         }
       }
 
       const { correlationId } = msg.properties;
       await channel.sendToQueue(msg.properties.replyTo, new Buffer(JSON.stringify(result)), { correlationId });
+      logger.outbound({ queue: this.option.queue, correlationId, content: result, type: typeof result });
       channel.ack(msg);
     });
 
@@ -59,6 +94,7 @@ export default class CogServer {
    * Closes all the connection that has been made.
    */
   async stop() {
+    logger.info({ queue: this.option.queue, message: 'Stopping server.' });
     await Promise.all(this.connections.map(async ({ channel, consumerTag }) => {
       // We just let know that the channel is already closed, considering the connection is also closed.
       channel.cancel(consumerTag);
@@ -69,5 +105,6 @@ export default class CogServer {
       // connection.close();
     }));
     delete this.connections;
+    logger.info({ queue: this.option.queue, message: 'Server stopped' });
   }
 }

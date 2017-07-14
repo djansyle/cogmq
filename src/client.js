@@ -1,8 +1,8 @@
 import assert from 'assert';
 import { v4 } from 'uuid';
-import debug from 'debug';
 import RmqConnection from './connection';
 import ConvertableError from './convertableError';
+import { client as logger } from './logger';
 
 /**
  * Generates an uuidV4 with no hyphen(-);
@@ -39,14 +39,17 @@ export default class CogClient extends ConvertableError {
     const q = await channel.assertQueue('', { exclusive: true });
     channel.consume(q.queue, async (msg) => {
       channel.ack(msg);
+      const content = msg.content.toString();
+      logger.inbound({ queue: this.option.queue, content });
+
       const { correlationId } = msg.properties;
       const cb = this.messages.get(correlationId);
       if (!cb) {
-        debug(`Message with id ${correlationId} arrived unexpectedly.`);
+        logger.info({ queue: this.option.queue, message: `Message with id ${correlationId} arrived unexpectedly.` });
         return;
       }
 
-      cb(JSON.parse(msg.content.toString()));
+      cb(JSON.parse(content));
     });
 
     this.channel = channel;
@@ -63,6 +66,7 @@ export default class CogClient extends ConvertableError {
       await this.initialize();
     }
 
+    logger.info({ queue: this.option.queue, message: 'Sending data.', content: msg, type: typeof msg });
     const correlationId = uuidV4();
     const promise = new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
@@ -90,9 +94,12 @@ export default class CogClient extends ConvertableError {
       });
     });
 
+    const strMessage = JSON.stringify({ payload: msg });
+    logger.outbound({ queue: this.option.queue, correlationId, content: strMessage, type: typeof message });
+
     await this.channel.sendToQueue(
       this.option.queue,
-      new Buffer(JSON.stringify({ payload: msg })),
+      new Buffer(strMessage),
       { correlationId, replyTo: this.queue.queue },
     );
 
