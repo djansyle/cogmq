@@ -8,8 +8,7 @@ function isJavascriptError(error) {
     error instanceof SyntaxError ||
     error instanceof TypeError ||
     error instanceof URIError ||
-    error instanceof EvalError ||
-    (error instanceof Error && error.name === 'Error'); // Plain Error object, not the one that is being inherited.
+    error instanceof EvalError; // Plain Error object, not the one that is being inherited.
 }
 
 /**
@@ -60,6 +59,9 @@ export default class CogServer {
         result = { payload: await fn(payload) };
       } catch (error) {
         logger.error({ queue: this.option.queue, error });
+        console.log(error);
+        const handlerResult = this.errorHandler ? this.errorHandler(error) : null;
+
         if (error instanceof SyntaxError) {
           result = {
             error: {
@@ -70,15 +72,21 @@ export default class CogServer {
               },
             },
           };
+          // Try if there is a result from errorHandler built in.
+        } else if (handlerResult) {
+          result = handlerResult;
+
+          // Default handler for all CogError
+        } else if (error instanceof CogError) {
+          result = { error: error.toJSON() };
+
+          // A programmer error
         } else if (isJavascriptError(error)) {
           result = { error: { code: 'INTERNAL_ERROR', description: 'Something went wrong with the server.' } };
-        } else if (error instanceof CogError) {
-          result = error.toJSON();
+
+          // I don't know error.
         } else {
           result = { error };
-          if (this.errorHandler) {
-            result = this.errorHandler(error);
-          }
         }
       }
 

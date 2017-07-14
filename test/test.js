@@ -102,7 +102,7 @@ test.skip('Stress', async (t) => {
   t.is(received, numRequest);
 });
 
-test('Should use the error', async (t) => {
+test.only('Should use the error', async (t) => {
   const option = { queue: 'custom_error' };
   const message = 'Hello MQ';
 
