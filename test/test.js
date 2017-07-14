@@ -82,7 +82,7 @@ test('Should timeout', async (t) => {
   t.is(error.message, 'Waiting time reach to the maximum threshold.');
 });
 
-test('Stress', async (t) => {
+test.skip('Stress', async (t) => {
   const option = { queue: 'stress' };
 
   const echoServer = new rmq.Server(option);
@@ -111,18 +111,21 @@ test('Should use the error', async (t) => {
     throw Object.assign({ code: 'FAIL_ERROR', args: { arg1: 'somearg', arg2: 'somearg2' } });
   });
 
-  class CustomHandler extends Error {
+  class CustomHandler {
     constructor({ arg1, arg2 }) {
-      super();
       this.arg1 = arg1;
       this.arg2 = arg2;
+    }
+    static getCode() {
+      return 'FAIL_ERROR';
     }
   }
 
   const echoClient = new rmq.Client(option);
-  echoClient.setErrorMap({ FAIL_ERROR: CustomHandler });
+  echoClient.addHandler(CustomHandler);
 
   const error = await t.throws(echoClient.send(message));
+  t.truthy(error instanceof CustomHandler);
   t.is(error.arg1, 'somearg');
   t.is(error.arg2, 'somearg2');
 });

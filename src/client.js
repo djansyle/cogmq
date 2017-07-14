@@ -1,7 +1,7 @@
 import assert from 'assert';
 import { v4 } from 'uuid';
 import RmqConnection from './connection';
-import ConvertableError from './convertableError';
+import ErrorMapper from './errorMapper';
 import { client as logger } from './logger';
 
 /**
@@ -15,7 +15,7 @@ function uuidV4() {
 /**
  * RabbitMQ Client Class
  */
-export default class CogClient extends ConvertableError {
+export default class CogClient extends ErrorMapper {
   constructor(option) {
     super(option.errorMap);
     const queue = typeof option.queue;
