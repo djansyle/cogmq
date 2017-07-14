@@ -1,5 +1,6 @@
 import assert from 'assert';
 import RmqConnection from './connection';
+import CogError from './error';
 import { server as logger } from './logger';
 
 function isJavascriptError(error) {
@@ -71,9 +72,10 @@ export default class CogServer {
           };
         } else if (isJavascriptError(error)) {
           result = { error: { code: 'INTERNAL_ERROR', description: 'Something went wrong with the server.' } };
+        } else if (error instanceof CogError) {
+          result = error.toJSON();
         } else {
           result = { error };
-
           if (this.errorHandler) {
             result = this.errorHandler(error);
           }
