@@ -59,7 +59,6 @@ export default class CogServer {
         result = { payload: await fn(payload) };
       } catch (error) {
         logger.error({ queue: this.option.queue, error });
-        console.log(error);
         const handlerResult = this.errorHandler ? this.errorHandler(error) : null;
 
         if (error instanceof SyntaxError) {

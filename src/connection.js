@@ -8,13 +8,13 @@ export default class CogConnection {
    * @param {String} [option.url]
    */
   constructor(option) {
-    this.option = Object.assign(option || {}, {
+    this.option = Object.assign({
       host: 'localhost',
       port: 5672,
       login: 'guest',
       password: 'guest',
       vhost: '/',
-    });
+    }, option || {});
     this.connection = null;
   }
 
